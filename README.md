@@ -196,3 +196,7 @@ Open [http://localhost:3000](http://localhost:3000). Click **"Populate Data"** t
 ## License
 
 MIT
+
+---
+
+Built in a single session with [Kiro.dev](https://kiro.dev) + some light steering.
