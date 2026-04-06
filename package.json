@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/mayurjobanputra/single-google-analytics-view#readme",
   "dependencies": {
+    "@google-analytics/admin": "^9.0.1",
     "@google-analytics/data": "^5.2.1",
     "better-sqlite3": "^12.8.0",
     "google-auth-library": "^10.6.2",

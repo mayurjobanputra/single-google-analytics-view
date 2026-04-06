@@ -19,7 +19,7 @@ interface SyncPropertyResult {
 }
 
 export default function DashboardPage() {
-  const [mode, setMode] = useState<"live" | "mock">("mock");
+  const [mode, setMode] = useState<"live" | "mock" | "auto-discover">("mock");
   const [properties, setProperties] = useState<PropertyConfig[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [chartData, setChartData] = useState<SessionRecord[]>([]);
@@ -223,6 +223,22 @@ export default function DashboardPage() {
               }}
             >
               Mock Mode
+            </span>
+          )}
+          {mode === "auto-discover" && (
+            <span
+              style={{
+                background: "#34d399",
+                color: "#064e3b",
+                fontSize: "0.7rem",
+                fontWeight: 700,
+                padding: "0.15rem 0.5rem",
+                borderRadius: "4px",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
+              Auto-Discover
             </span>
           )}
         </div>

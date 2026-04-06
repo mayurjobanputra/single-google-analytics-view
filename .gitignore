@@ -10,6 +10,12 @@ out/
 .env.local
 .env*.local
 
+# service account credentials
+service-account-key.json
+
+# user config (contains property IDs)
+properties.json
+
 # database
 *.db
 data/

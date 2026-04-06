@@ -9,7 +9,7 @@ export interface PropertyConfig {
 export interface ConfigResult {
   properties: PropertyConfig[];
   errors: string[];
-  mode: "live" | "mock";
+  mode: "live" | "mock" | "auto-discover";
 }
 
 const MOCK_PROPERTIES: PropertyConfig[] = [
@@ -23,6 +23,33 @@ export async function loadProperties(): Promise<ConfigResult> {
 
   if (isMockMode) {
     return { properties: MOCK_PROPERTIES, errors: [], mode: "mock" };
+  }
+
+  // Auto-discover mode: pull all properties from the GA4 Admin API
+  const isAutoDiscover = process.env.AUTO_DISCOVER === "true";
+
+  if (isAutoDiscover) {
+    try {
+      // Dynamic import to avoid loading admin SDK when not needed
+      const { discoverProperties } = await import("@/lib/ga4");
+      const properties = await discoverProperties();
+
+      if (properties.length === 0) {
+        return {
+          properties: [],
+          errors: ["Auto-discover found no GA4 properties. Check that the service account has access to at least one GA4 property."],
+          mode: "auto-discover",
+        };
+      }
+
+      return { properties, errors: [], mode: "auto-discover" };
+    } catch (err) {
+      return {
+        properties: [],
+        errors: [`Auto-discover failed: ${err instanceof Error ? err.message : String(err)}`],
+        mode: "auto-discover",
+      };
+    }
   }
 
   const configPath = path.join(process.cwd(), "properties.json");

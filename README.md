@@ -50,15 +50,33 @@ Follow these steps to connect your real Google Analytics properties.
 9. Choose **JSON** and click **Create**
 10. A JSON key file will download — save it in the project root as `service-account-key.json`
 
-### 2. Enable the GA4 Data API
+### 2. Enable Google APIs
 
 1. In the Google Cloud Console, go to **APIs & Services → Library**
-2. Search for **"Google Analytics Data API"**
-3. Click on it and click **Enable**
+2. Search for **"Google Analytics Data API"** → click **Enable**
+3. Search for **"Google Analytics Admin API"** → click **Enable** (needed for auto-discover mode)
 
-### 3. Grant GA4 Property Access
+### 3. Grant GA4 Access
 
-For each GA4 property you want to track:
+You have two options — account-level access (easiest) or per-property access.
+
+**Option A: Account-level access (recommended)**
+
+This grants the service account access to all properties under a GA account at once.
+
+1. Go to [Google Analytics](https://analytics.google.com/)
+2. Navigate to **Admin** (gear icon at the bottom left)
+3. Under **Account**, go to **Account Access Management**
+4. Click the **+** button → **Add users**
+5. Enter the service account email (find it in your JSON key file as the `client_email` field)
+6. Set the role to **Viewer**
+7. Click **Add**
+
+This covers all properties under that account. If you have properties across multiple GA accounts, repeat for each account.
+
+**Option B: Per-property access**
+
+If you only want to grant access to specific properties:
 
 1. Go to [Google Analytics](https://analytics.google.com/)
 2. Navigate to **Admin** (gear icon at the bottom left)
@@ -72,6 +90,14 @@ For each GA4 property you want to track:
 Repeat for each GA4 property you want to display on the dashboard.
 
 ### 4. Configure Properties
+
+You have two options — manual config or auto-discover.
+
+**Option A: Auto-discover (recommended if you granted account-level access)**
+
+Skip `properties.json` entirely. The app will automatically find all GA4 properties the service account can access. Just set `AUTO_DISCOVER=true` in your `.env` (see step 5).
+
+**Option B: Manual config**
 
 Copy the example config and add your GA4 property IDs:
 
@@ -104,7 +130,12 @@ Edit `.env`:
 ```env
 GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json
 MOCK_MODE=false
+AUTO_DISCOVER=true
 ```
+
+> ⚠️ **Important:** The `.env.example` file ships with `MOCK_MODE=true` by default. You **must** change this to `MOCK_MODE=false` to use live GA4 data. If you still see demo data with the "Mock Mode" badge after setup, this is likely the reason.
+
+Set `AUTO_DISCOVER=true` if you want the app to automatically find all GA4 properties your service account has access to (no `properties.json` needed). Set it to `false` if you prefer to manually list properties in `properties.json`.
 
 **Alternative: Inline credentials** (useful for deployment or if you don't want to store the key file):
 

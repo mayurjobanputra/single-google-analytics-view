@@ -1,4 +1,6 @@
 import { BetaAnalyticsDataClient } from "@google-analytics/data";
+import { AnalyticsAdminServiceClient } from "@google-analytics/admin";
+import { PropertyConfig } from "@/lib/config";
 
 export interface SessionRecord {
   propertyId: string;
@@ -111,4 +113,63 @@ export async function fetchSessionData(
   }
 
   throw lastError;
+}
+
+/**
+ * Creates an authenticated GA4 Admin API client using the same credential
+ * strategy as createGa4Client().
+ */
+function createAdminClient(): AnalyticsAdminServiceClient {
+  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  const privateKey = process.env.GOOGLE_PRIVATE_KEY;
+
+  if (email && privateKey) {
+    return new AnalyticsAdminServiceClient({
+      credentials: {
+        client_email: email,
+        private_key: privateKey.replace(/\\n/g, "\n"),
+      },
+    });
+  }
+
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    return new AnalyticsAdminServiceClient({
+      keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+    });
+  }
+
+  throw new Error(
+    "No Google service account credentials configured. " +
+      "Set GOOGLE_APPLICATION_CREDENTIALS to a JSON key file path, " +
+      "or set both GOOGLE_SERVICE_ACCOUNT_EMAIL and GOOGLE_PRIVATE_KEY."
+  );
+}
+
+/**
+ * Auto-discovers all GA4 properties accessible by the service account.
+ * Uses the GA4 Admin API's listAccountSummaries endpoint.
+ * Returns an array of PropertyConfig with propertyId and displayName.
+ */
+export async function discoverProperties(): Promise<PropertyConfig[]> {
+  const client = createAdminClient();
+  const properties: PropertyConfig[] = [];
+
+  const [summaries] = await client.listAccountSummaries();
+
+  for (const account of summaries) {
+    if (account.propertySummaries) {
+      for (const prop of account.propertySummaries) {
+        if (prop.property && prop.displayName) {
+          // prop.property is like "properties/531170948"
+          const propertyId = prop.property.replace("properties/", "");
+          properties.push({
+            propertyId,
+            displayName: prop.displayName,
+          });
+        }
+      }
+    }
+  }
+
+  return properties;
 }
